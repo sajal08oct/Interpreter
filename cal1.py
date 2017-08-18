@@ -1,6 +1,8 @@
 
 
-INTEGER , PLUS , EOF = 'INTEGER', 'PLUS','EOF'
+INTEGER,PLUS,MINUS,EOF = 'INTEGER', 'PLUS', 'MINUS','EOF'
+EMPTY = 'EMPTY'
+
 
 class Token(object):
     def __init__(self,type,value):
@@ -28,11 +30,9 @@ class Interpreter(object):
 
         #index into self.text
         self.pos = 0
-
         #current token instance
 
         self.current_token = None
-
 
     def error(self):
         raise Exception('Error parsing input')
@@ -65,6 +65,10 @@ class Interpreter(object):
 
         elif current_char=='+':
             token = Token(PLUS,current_char)
+        elif current_char=='-':
+            token = Token(MINUS,current_char)
+        elif current_char==' ':
+            token = Token(EMPTY,' ')
         else:
             self.error()
 
@@ -78,7 +82,12 @@ class Interpreter(object):
         # and assign the next token to the self.current_token,
         # otherwise raise an exception.
         if self.current_token.type == token_type:
+
             self.current_token = self.get_next_token()
+            if(self.current_token.type==EMPTY):
+                while(self.current_token.type==EMPTY):
+                    self.current_token = self.get_next_token()
+
         else:
             self.error()
 
@@ -87,13 +96,16 @@ class Interpreter(object):
         """expr -> INTEGER PLUS INTEGER"""
         # set current token to the first token taken from the input
         self.current_token = self.get_next_token()
+        if (self.current_token.type == EMPTY):
+            while (self.current_token.type == EMPTY):
+                self.current_token = self.get_next_token()
 
         left = self.current_token
 
         self.eat(INTEGER)
 
         op = self.current_token
-        self.eat(PLUS)
+        self.eat(op.type)
 
         right = self.current_token
         self.eat(INTEGER)
@@ -102,7 +114,11 @@ class Interpreter(object):
         # has been successfully found and the method can just
         # return the result of adding two integers, thus
         # effectively interpreting client input
-        result = left.value + right.value
+        result=None;
+        if(op.type==PLUS):
+           result = left.value + right.value
+        elif(op.type==MINUS):
+            result = left.value-right.value
 
         return result
 
