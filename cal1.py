@@ -44,13 +44,23 @@ class Interpreter(object):
 
         """
         text = self.text
+        integer_len = 0
 
         if self.pos > len(text)-1 :
             return Token(EOF,None)
 
-        current_char = text[self.pos]
+        if(text[self.pos+integer_len].isdigit()):
+            while(self.pos+integer_len < len(text) and text[self.pos+integer_len].isdigit()):
+                integer_len+=1
+        else:
+            integer_len=1
 
-        if current_char.isdigit():
+        current_char = text[self.pos:self.pos+integer_len]
+        # if the character is a digit then convert it to
+        # integer, create an INTEGER token, increment self.pos
+        # index to point to the next character after the digit,
+        # and return the INTEGER token
+        if current_char.isnumeric():
             token = Token(INTEGER,int(current_char))
 
         elif current_char=='+':
@@ -58,18 +68,24 @@ class Interpreter(object):
         else:
             self.error()
 
-        self.pos += 1
+        self.pos += integer_len
         return token
 
 
     def eat(self,token_type):
-
+        # compare the current token type with the passed token
+        # type and if they match then "eat" the current token
+        # and assign the next token to the self.current_token,
+        # otherwise raise an exception.
         if self.current_token.type == token_type:
             self.current_token = self.get_next_token()
         else:
             self.error()
 
+
     def expr(self):
+        """expr -> INTEGER PLUS INTEGER"""
+        # set current token to the first token taken from the input
         self.current_token = self.get_next_token()
 
         left = self.current_token
@@ -82,6 +98,10 @@ class Interpreter(object):
         right = self.current_token
         self.eat(INTEGER)
 
+        # at this point INTEGER PLUS INTEGER sequence of tokens
+        # has been successfully found and the method can just
+        # return the result of adding two integers, thus
+        # effectively interpreting client input
         result = left.value + right.value
 
         return result
