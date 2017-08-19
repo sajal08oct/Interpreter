@@ -31,17 +31,58 @@ class Interpreter(object):
         #index into self.text
         self.pos = 0
         #current token instance
-
         self.current_token = None
+        self.current_char = self.text[self.pos]
 
     def error(self):
         raise Exception('Error parsing input')
 
+    def advance(self):
+        self.pos += 1
+        if self.pos > len(self.text)-1 :
+            self.current_char = None
+        else:
+            self.current_char  = self.text[self.pos]
+
+
+    def skip_white_space(self):
+        while (self.current_char is not None and self.current_char.isspace()):
+            self.advance()
+
+    def integer(self):
+
+        result =''
+        while self.current_char  is not None and self.current_char.isdigit():
+            result += self.current_char
+            self.advance()
+
+        return int(result)
+
+
     def get_next_token(self):
+
+        while self.current_char is not None:
+
+            if self.current_char.isspace():
+                self.skip_white_space()
+                continue
+            if self.current_char.isdigit():
+                return Token(INTEGER,self.integer())
+
+            if self.current_char =='+':
+                self.advance()
+                return Token(PLUS,'+')
+            if self.current_char =='-':
+                self.advance()
+                return Token(MINUS,'-')
+            self.error()
+
+        return Token(EOF, None)
+
+    def get_next_token_old(self):
         """
         lexical analyser (scanner/tokenizer)
         responsible for breaking text into tokens
-
         """
         text = self.text
         integer_len = 0
@@ -82,12 +123,7 @@ class Interpreter(object):
         # and assign the next token to the self.current_token,
         # otherwise raise an exception.
         if self.current_token.type == token_type:
-
             self.current_token = self.get_next_token()
-            if(self.current_token.type==EMPTY):
-                while(self.current_token.type==EMPTY):
-                    self.current_token = self.get_next_token()
-
         else:
             self.error()
 
